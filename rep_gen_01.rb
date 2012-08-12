@@ -1,9 +1,4 @@
-﻿#########TODO############
-#1	switch second output
-#		name <-> goods
-#		track <-> consolidation_price
-
-
+﻿#####################
 
 $stdout = File.open('files/Result.csv', 'w')
 $stderr = File.open('files/Errors.txt', 'a')
@@ -86,6 +81,20 @@ def generate_string (from, to, value)
 	return result
 end
 
+def number_to_letter (value)
+	all_letters = ["Z","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
+	result = ""
+
+	first = value/26
+	second = value%26
+	first = first - 1 if second == 0 
+
+
+	result = "#{all_letters[first]}" if (first > 0) 
+	result = result + "#{all_letters[second]}"
+	return result
+end
+
 #====================================================processing====================================================
 
 #---read File, init All Customers, all Packages, all Goods
@@ -102,7 +111,7 @@ File.open(input_file).each do |line|
 	end
 	
 
-#=begin
+
 #-1-Customers total bill
 customers_init.uniq.sort.each do |cust|
 	customers << [cust, 0.0]
@@ -142,34 +151,39 @@ init_Table.each do |line|
 		from_whom = number("Bobby", cash_flow_users)
 		to_whom = number(line[c_name], cash_flow_users)
 		bill = line[c_total].round 2
-	cash_flow_report << "#{line[c_goods]};#{line[c_date_bill]};#{generate_string(from_whom, to_whom, bill)}"
+	cash_flow_report << ";#{line[c_goods]};#{line[c_date_bill]};#{generate_string(from_whom, to_whom, bill)}"
 	
 	#c_date_purchase	adm -> bby
 		from_whom = number(line[c_admin_purchase], cash_flow_users)
 		to_whom = number("Bobby", cash_flow_users)
 		bill = line[c_price_rub].round 2
-	cash_flow_report << "#{line[c_goods]};#{line[c_date_purchase]};#{generate_string(from_whom, to_whom, bill)}" if line[c_price_rub].to_i != 0
+	cash_flow_report << ";#{line[c_goods]};#{line[c_date_purchase]};#{generate_string(from_whom, to_whom, bill)}" if line[c_price_rub].to_i != 0
 	#c_date_purchase	bby -> shop
 		from_whom = number("Bobby", cash_flow_users)
 		to_whom = number("SHOPS", cash_flow_users)
 		bill = line[c_price_rub].round 2
-	cash_flow_report << "#{line[c_goods]};#{line[c_date_purchase]};#{generate_string(from_whom, to_whom, bill)}" if line[c_price_rub].to_i != 0
+	cash_flow_report << ";#{line[c_goods]};#{line[c_date_purchase]};#{generate_string(from_whom, to_whom, bill)}" if line[c_price_rub].to_i != 0
 	
 	#c_date_pay		cust -> bby
 		from_whom = number(line[c_name], cash_flow_users)
 		to_whom = number("Bobby", cash_flow_users)
 		bill = line[c_total].round 2
-	cash_flow_report << "#{line[c_goods]};#{line[c_date_pay]};#{generate_string(from_whom, to_whom, bill)}" if line[c_price_rub].to_i != 0
+	cash_flow_report << ";#{line[c_goods]};#{line[c_date_pay]};#{generate_string(from_whom, to_whom, bill)}" if line[c_price_rub].to_i != 0
 	#c_date_pay		bby -> adm
 		from_whom = number("Bobby", cash_flow_users)
 		to_whom = number(line[c_admin_pay], cash_flow_users)
 		bill = line[c_total].round 2
-	cash_flow_report << "#{line[c_goods]};#{line[c_date_pay]};#{generate_string(from_whom, to_whom, bill)}" if line[c_price_rub].to_i != 0
+	cash_flow_report << ";#{line[c_goods]};#{line[c_date_pay]};#{generate_string(from_whom, to_whom, bill)}" if line[c_price_rub].to_i != 0
 	
 end
 
 
 #====================================================Report====================================================
+#=begin
+
+last_coloumn_letter = number_to_letter(cash_flow_users.size + 5)		#5 = 3 needed + 2 na zapas
+last_string_number = ((init_Table.size)*5) + 20							#20 zapas
+
 
 #svodnie_dannie_csv
 print "\n"
@@ -191,14 +205,17 @@ puts ""
 
 
 #filled_table_csv
-puts "name;goods;track;consolidation_price;us_price;price_rub;shipping;bill;total"
+puts "goods;name;consolidation_price;track;us_price;price_rub;shipping;bill;total"
 init_Table.each do |line|
 	line = clean_for_csv(line)
-	puts "#{line[c_name]};#{line[c_goods]};#{line[c_track]};#{line[c_consolidation_price]};#{line[c_us_price]};#{line[c_price_rub]};#{line[c_shipping]};#{line[c_bill]};#{line[c_total]}"
+	puts "#{line[c_goods]};#{line[c_name]};#{line[c_consolidation_price]};#{line[c_track]};#{line[c_us_price]};#{line[c_price_rub]};#{line[c_shipping]};#{line[c_bill]};#{line[c_total]}"
 end
 puts ""
 
 #cash_flow_report
-puts "Goods;Date;" + cash_flow_users.join(';')
+puts ";Goods;Date;" + cash_flow_users.join(';')
+puts "=SUM(D2:#{last_coloumn_letter}2);sums;;=SUM(D3:D#{last_string_number});"
 puts cash_flow_report
+
+
 #=end
