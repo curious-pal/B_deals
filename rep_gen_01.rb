@@ -5,11 +5,11 @@
 
 
 
-$stdout = File.open('Result.csv', 'w')
-$stderr = File.open('Errors.txt', 'a')
+$stdout = File.open('files/Result.csv', 'w')
+$stderr = File.open('files/Errors.txt', 'a')
 
 #==========config============
-input_file = "080712.csv"
+input_file = "files/input 080712.csv"
 cash_flow_users = ["Bobby","Leha","Igor","SHOPS"]
 c_name = 0
 c_goods = 1
