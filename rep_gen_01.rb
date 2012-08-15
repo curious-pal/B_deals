@@ -4,7 +4,7 @@ $stdout = File.open('files/Result.csv', 'w')
 $stderr = File.open('files/Errors.txt', 'a')
 
 #==========config============
-input_file = "files/input 080712.csv"
+input_file = "files/080712_new.csv"
 cash_flow_users = ["Bobby","Leha","Igor","SHOPS"]
 c_name = 0
 c_goods = 1
@@ -214,7 +214,7 @@ puts ""
 
 #cash_flow_report
 puts ";Goods;Date;" + cash_flow_users.join(';')
-puts "=SUM(D2:#{last_coloumn_letter}2);sums;;=SUM(D3:D#{last_string_number});"
+puts "SUM(D2:#{last_coloumn_letter}2);sums;;SUM(D3:D#{last_string_number});"
 puts cash_flow_report
 
 
