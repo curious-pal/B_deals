@@ -4,7 +4,7 @@ $stdout = File.open('files/Result.csv', 'w')
 $stderr = File.open('files/Errors.txt', 'a')
 
 #==========config============
-input_file = "files/080712_new.csv"
+input_file = "files/150812.csv"
 cash_flow_users = ["Bobby","Leha","Igor","SHOPS"]
 c_name = 0
 c_goods = 1
@@ -12,6 +12,7 @@ c_goods = 1
 c_track = 5
 c_consolidation_price = 6
 c_us_price = 7
+c_shipping_us = 8
 c_price_rub = 11
  c_date_purchase = 12
  c_admin_purchase = 13
@@ -20,8 +21,8 @@ c_bill = 15
 c_total = 16
  c_date_pay = 17
  c_admin_pay = 18
-total_price	= 178.42		#$ check?
-dollar = 33.4
+total_price	= 135,76		#FULL PACKAGE PRICE ALWAYS SET!!!  consolidation Price will be substracted (#3 "total_price_wo_consolidation")
+dollar = 32
 #==========config============
 
 
@@ -115,7 +116,7 @@ File.open(input_file).each do |line|
 #-1-Customers total bill
 customers_init.uniq.sort.each do |cust|
 	customers << [cust, 0.0]
-	cash_flow_users << cust
+	cash_flow_users << cust 						# = cash_flow_users (^^^"Bobby","Leha","Igor","SHOPS"^^^) + All unique customers (c_name)
 end
 
 #-2-Packages list, cosolidation price
@@ -140,20 +141,22 @@ total_price_wo_consolidation = (total_price*dollar) - (packages.size*2*dollar)
 
 
 init_Table.each do |line|
-	line[c_shipping] = (percent_of_bill(total_price_wo_consolidation, sum_us, line[c_us_price])) + (line[c_consolidation_price]*dollar)	# Set shipping price per commodity
+	line[c_shipping] = (percent_of_bill(total_price_wo_consolidation, sum_us, line[c_us_price])) + (line[c_consolidation_price]*dollar) + (line[c_shipping_us]*dollar)	# Set shipping price per commodity
 	line[c_bill] = (line[c_total] - line[c_shipping]) if ((line[c_bill].to_s == "") &&(line[c_total].to_s != ""))	# Set Bill
 	line[c_total] = (line[c_bill] + line[c_shipping]) if ((line[c_total].to_s == "") && (line[c_bill].to_s != ""))	# Set Total
+	puts "By User #{line[c_name]} [c_bill] and [c_total] are not set" if ((line[c_bill].to_s == "") && (line[c_total].to_s == ""))
+	puts "By User #{line[c_name]} [c_bill] and [c_total] are set together" if ((line[c_bill].to_s != "") && (line[c_total].to_s != ""))
 	for i in 0...customers.size
 		customers[i][1] += line[c_total] if customers[i][0] == line[c_name]
 	end
 	
-	#c_date_bill		bby -> cust
+	#c_date_bill		bby -> cust 										# generate bill = c_total
 		from_whom = number("Bobby", cash_flow_users)
 		to_whom = number(line[c_name], cash_flow_users)
 		bill = line[c_total].round 2
 	cash_flow_report << ";#{line[c_goods]};#{line[c_date_bill]};#{generate_string(from_whom, to_whom, bill)}"
 	
-	#c_date_purchase	adm -> bby
+	#c_date_purchase	adm -> bby 											# c_price_rub -> shop 	(if c_price_rub != 0)
 		from_whom = number(line[c_admin_purchase], cash_flow_users)
 		to_whom = number("Bobby", cash_flow_users)
 		bill = line[c_price_rub].round 2
@@ -164,16 +167,16 @@ init_Table.each do |line|
 		bill = line[c_price_rub].round 2
 	cash_flow_report << ";#{line[c_goods]};#{line[c_date_purchase]};#{generate_string(from_whom, to_whom, bill)}" if line[c_price_rub].to_i != 0
 	
-	#c_date_pay		cust -> bby
+	#c_date_pay		cust -> bby 											# c_total -> adm 	(from customer)
 		from_whom = number(line[c_name], cash_flow_users)
 		to_whom = number("Bobby", cash_flow_users)
 		bill = line[c_total].round 2
-	cash_flow_report << ";#{line[c_goods]};#{line[c_date_pay]};#{generate_string(from_whom, to_whom, bill)}" if line[c_price_rub].to_i != 0
+	cash_flow_report << ";#{line[c_goods]};#{line[c_date_pay]};#{generate_string(from_whom, to_whom, bill)}" #if line[c_price_rub].to_i != 0
 	#c_date_pay		bby -> adm
 		from_whom = number("Bobby", cash_flow_users)
 		to_whom = number(line[c_admin_pay], cash_flow_users)
 		bill = line[c_total].round 2
-	cash_flow_report << ";#{line[c_goods]};#{line[c_date_pay]};#{generate_string(from_whom, to_whom, bill)}" if line[c_price_rub].to_i != 0
+	cash_flow_report << ";#{line[c_goods]};#{line[c_date_pay]};#{generate_string(from_whom, to_whom, bill)}" #if line[c_price_rub].to_i != 0
 	
 end
 
