@@ -4,7 +4,7 @@ $stdout = File.open('files/Result.csv', 'w')
 $stderr = File.open('files/Errors.txt', 'a')
 
 #==========config============
-input_file = "files/150812.csv"
+input_file = "files/input 080712.csv"
 cash_flow_users = ["Bobby","Leha","Igor","SHOPS"]
 c_name = 0
 c_goods = 1
@@ -21,8 +21,8 @@ c_bill = 15
 c_total = 16
  c_date_pay = 17
  c_admin_pay = 18
-total_price	= 135,76		#FULL PACKAGE PRICE ALWAYS SET!!!  consolidation Price will be substracted (#3 "total_price_wo_consolidation")
-dollar = 32
+package_price	= 188.08		#FULL PACKAGE PRICE ALWAYS SET!!!  consolidation Price will be substracted (#3 "package_price_wo_consolidation")	|use dot (.) as delimeter|
+dollar = 33
 #==========config============
 
 
@@ -111,6 +111,15 @@ File.open(input_file).each do |line|
 	#puts ""
 	end
 	
+init_Table.each do |line|
+#	puts "#{line[c_name].class};#{line[c_goods].class};#{line[c_date_bill].class};#{line[c_track].class};#{line[c_us_price].class};#{line[c_shipping_us].class};#{line[c_price_rub].class};#{line[c_date_purchase].class};#{line[c_admin_purchase].class};#{line[c_bill].class};#{line[c_total].class};#{line[c_date_pay].class};#{line[c_admin_pay].class}"
+#	puts "#{line[c_name]};#{line[c_goods]};#{line[c_date_bill]};#{line[c_track]};#{line[c_us_price]};#{line[c_shipping_us]};#{line[c_price_rub]};#{line[c_date_purchase]};#{line[c_admin_purchase]};#{line[c_bill]};#{line[c_total]};#{line[c_date_pay]};#{line[c_admin_pay]}"
+	line = clean_for_csv(line)
+#	puts "#{line[c_name].class};#{line[c_goods].class};#{line[c_date_bill].class};#{line[c_track].class};#{line[c_us_price].class};#{line[c_shipping_us].class};#{line[c_price_rub].class};#{line[c_date_purchase].class};#{line[c_admin_purchase].class};#{line[c_bill].class};#{line[c_total].class};#{line[c_date_pay].class};#{line[c_admin_pay].class}"
+#	puts "#{line[c_name]};#{line[c_goods]};#{line[c_date_bill]};#{line[c_track]};#{line[c_us_price]};#{line[c_shipping_us]};#{line[c_price_rub]};#{line[c_date_purchase]};#{line[c_admin_purchase]};#{line[c_bill]};#{line[c_total]};#{line[c_date_pay]};#{line[c_admin_pay]}"
+#	puts ""
+end
+
 
 
 #-1-Customers total bill
@@ -136,16 +145,15 @@ end
 
 #-3-Set new fiels
 cash_flow_report = []
-total_price_wo_consolidation = (total_price*dollar) - (packages.size*2*dollar)
-
+package_price_wo_consolidation = (package_price*dollar) - (packages.size*2*dollar)
 
 
 init_Table.each do |line|
-	line[c_shipping] = (percent_of_bill(total_price_wo_consolidation, sum_us, line[c_us_price])) + (line[c_consolidation_price]*dollar) + (line[c_shipping_us]*dollar)	# Set shipping price per commodity
-	line[c_bill] = (line[c_total] - line[c_shipping]) if ((line[c_bill].to_s == "") &&(line[c_total].to_s != ""))	# Set Bill
-	line[c_total] = (line[c_bill] + line[c_shipping]) if ((line[c_total].to_s == "") && (line[c_bill].to_s != ""))	# Set Total
-	puts "By User #{line[c_name]} [c_bill] and [c_total] are not set" if ((line[c_bill].to_s == "") && (line[c_total].to_s == ""))
-	puts "By User #{line[c_name]} [c_bill] and [c_total] are set together" if ((line[c_bill].to_s != "") && (line[c_total].to_s != ""))
+	line[c_shipping] = (percent_of_bill(package_price_wo_consolidation, sum_us, line[c_us_price])) + (line[c_consolidation_price]*dollar) + (line[c_shipping_us].to_f*dollar)	# Set shipping price per commodity
+	puts "By User #{line[c_name]} [c_bill] and [c_total] are not set" if ((line[c_bill].to_s == "") && (line[c_total].to_s == ""))			# nothing Error
+	puts "By User #{line[c_name]} [c_bill] and [c_total] are set together" if ((line[c_bill].to_s != "") && (line[c_total].to_s != ""))		# all together Error
+	line[c_bill] = (line[c_total] - line[c_shipping]) if ((line[c_bill].to_s == "") &&(line[c_total].to_s != ""))							# Set Bill
+	line[c_total] = (line[c_bill] + line[c_shipping]) if ((line[c_total].to_s == "") && (line[c_bill].to_s != ""))							# Set Total
 	for i in 0...customers.size
 		customers[i][1] += line[c_total] if customers[i][0] == line[c_name]
 	end
@@ -180,10 +188,9 @@ init_Table.each do |line|
 	
 end
 
-
 #====================================================Report====================================================
-#=begin
 
+#=begin
 last_coloumn_letter = number_to_letter(cash_flow_users.size + 5)		#5 = 3 needed + 2 na zapas
 last_string_number = ((init_Table.size)*5) + 20							#20 zapas
 
